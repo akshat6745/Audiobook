@@ -21,8 +21,7 @@ def extract_chapters(epub_path):
             chapter_title = title_tag.get_text(strip=True) if title_tag else f"Chapter {len(chapters) + 1}"
 
             # Extract chapter text
-            chapter_text = soup.get_text(separator=" ", strip=True)
-
+            chapter_text = soup.get_text()
             chapters[chapter_title] = chapter_text
 
     return chapters

@@ -12,7 +12,7 @@ class TextReader(QWidget):
         self.text_display.setReadOnly(True)
         self.text_display.setStyleSheet("background-color: #222; color: #ddd; font-size: 16px;")
         
-        # self.highlighter = Highlighter(self.text_display)
+        self.highlighter = Highlighter(self.text_display)
         
         layout = QVBoxLayout()
         layout.addWidget(self.text_display)
@@ -24,7 +24,6 @@ class TextReader(QWidget):
         
         # Replace multiple newlines with proper paragraph breaks
         formatted_text = text.replace("\n", "<br><br>")  # Preserve paragraph spacing
-        print(text)
         
         self.text_display.clear()
         self.text_display.setHtml(f"<div style='font-size: 16px; line-height: 1.6;'>{formatted_text}</div>")
@@ -32,11 +31,11 @@ class TextReader(QWidget):
         # Move cursor to the top of the chapter
         cursor = self.text_display.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.Start)
-        self.text_display.setTextCursor(cursor)
+        # self.text_display.setTextCursor(cursor)
 
         # Start highlighting words for speech synchronization
         # self.highlighter.highlight_words(text)
     
     def stop_highlighting(self):
-        # self.highlighter.stop()
-        pass
+        self.highlighter.stop()
+        # pass
