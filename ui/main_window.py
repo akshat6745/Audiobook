@@ -3,7 +3,7 @@ from PyQt6.QtGui import QFont
 from ui.text_reader import TextReader
 from ui.chapter_list import ChapterList
 from speech.tts import TTS
-from epub_parser.parser import extract_chapters
+from epub_parser.parser import extract_chapters, extract_chapters_html
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -14,6 +14,7 @@ class MainWindow(QMainWindow):
         # Load EPUB chapters
         epub_path = "The_Villain_Wants_to_Live_final.epub"  # Change this path
         self.chapters = extract_chapters(epub_path)
+        self.chapters_html = extract_chapters_html(epub_path)
 
         self.text_reader = TextReader()
         self.chapter_list = ChapterList(self.chapters.keys())  # Pass chapter titles
@@ -49,14 +50,18 @@ class MainWindow(QMainWindow):
         
     def load_chapter(self, chapter_title):
         """Loads and displays the selected chapter's text."""
+        self.selected_chapter = chapter_title
         chapter_text = self.chapters.get(chapter_title, "Chapter not found.")
         self.text_reader.display_text(chapter_text)
         
     def start_playback(self):
         text = self.text_reader.text_display.toPlainText()
+        # print(self.selected_chapter)
+        chapter_text = self.chapters_html.get(self.selected_chapter, "Chapter not found.")
+        # print(chapter_text)
         words = text.split()
         
-        self.tts_thread = TTS(text, words)
+        self.tts_thread = TTS(chapter_text)
         self.tts_thread.word_spoken.connect(self.text_reader.highlighter.apply_highlight)
         self.tts_thread.start()
         

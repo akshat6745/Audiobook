@@ -25,3 +25,20 @@ def extract_chapters(epub_path):
             chapters[chapter_title] = chapter_text
 
     return chapters
+
+def extract_chapters_html(epub_path):
+    book = epub.read_epub(epub_path)
+    chapters = {}
+
+    for item in book.get_items():
+        if item.get_type() == ebooklib.ITEM_DOCUMENT:
+            soup = BeautifulSoup(item.content, "html.parser")
+
+            # Extract chapter title (h1, h2, etc.)
+            title_tag = soup.find(["h1", "h2", "h3"])  # Adjust as needed
+            chapter_title = title_tag.get_text(strip=True) if title_tag else f"Chapter {len(chapters) + 1}"
+
+            # Extract chapter text
+            chapters[chapter_title] = soup
+
+    return chapters
