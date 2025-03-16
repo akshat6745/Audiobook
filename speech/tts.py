@@ -9,17 +9,21 @@ import subprocess
 class TTS(QThread):
     word_spoken = pyqtSignal(int)  # Signal for highlighting
     finished = pyqtSignal()  # Signal when TTS is done
+    chunk_started = pyqtSignal(int)  # New signal for updating playing index
 
-    def __init__(self, chapter_html_text, voice="en-US-JennyNeural"):
+    def __init__(self, text_chunks, voice="en-US-JennyNeural"):
         super().__init__()
-        self.chapter_html_text = chapter_html_text
+        # self.chapter_html_text = chapter_html_text
         self.voice = voice
         self.running = True
-        paragraphs = chapter_html_text.find_all('p')
-        self.text_chunks = [p.get_text() for p in paragraphs]
+        # paragraphs = chapter_html_text.find_all('p')
+        self.text_chunks = text_chunks
         
     async def speak_chunk(self, chunk, index):
         """Generates and plays speech for a single chunk."""
+        self.chunk_started.emit(index)  # Emit signal when chunk starts playing
+        if(chunk.strip() == "***"):
+            chunk = "Asterisk Asterisk Asterisk"
         tts = edge_tts.Communicate(chunk, self.voice)
         temp_output = f"temp_chunk_{index}.mp3"
         await tts.save(temp_output)
@@ -34,7 +38,6 @@ class TTS(QThread):
         # play_obj = wave_obj.play()
         # play_obj.wait_done()
         subprocess.run(["ffplay", "-nodisp", "-autoexit", wav_output], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print('2', chunk)
 
         # Emit signal for highlighting
         self.word_spoken.emit(index)
@@ -46,11 +49,9 @@ class TTS(QThread):
     async def process_chunks(self):
         """Processes each text chunk dynamically in sequence."""
         for index, chunk in enumerate(self.text_chunks):
-            print(chunk)
             if not self.running:
                 break
             await self.speak_chunk(chunk, index)  # Process each chunk sequentially
-            print(chunk)
         self.finished.emit()  # Notify when all chunks are spoken
         print("Finished speaking.")
 
