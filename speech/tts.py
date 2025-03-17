@@ -18,6 +18,7 @@ class TTS(QThread):
         self.running = True
         # paragraphs = chapter_html_text.find_all('p')
         self.text_chunks = text_chunks
+        self.current_process = None
         
     async def speak_chunk(self, chunk, index):
         """Generates and plays speech for a single chunk."""
@@ -41,7 +42,10 @@ class TTS(QThread):
             audio.export(wav_output, format="wav")
             
             # Play the WAV file
-            subprocess.run(["ffplay", "-nodisp", "-autoexit", wav_output], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.current_process = subprocess.Popen(["ffplay", "-nodisp", "-autoexit", wav_output], 
+                                                  stdout=subprocess.DEVNULL, 
+                                                  stderr=subprocess.DEVNULL)
+            self.current_process.wait()
 
             # Emit signal for highlighting
             self.word_spoken.emit(index)
@@ -67,4 +71,9 @@ class TTS(QThread):
         asyncio.new_event_loop().run_until_complete(self.process_chunks())
 
     def stop(self):
+        """Stops the TTS thread and any ongoing audio playback."""
         self.running = False
+        if self.current_process:
+            self.current_process.terminate()
+            self.current_process = None
+        
