@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPainter, QLinearGradient, QColor
 from PyQt6.QtCore import pyqtSignal
 
 class PlayBox(QWidget):
@@ -13,17 +13,25 @@ class PlayBox(QWidget):
       super().__init__()
       self.init_ui()
 
-   def initialize_text_chunks(self, text_chunks):
+   def initialize_text_chunks(self, text_chunks, chapter_title):
       self.text_chunks = text_chunks
+      self.current_playing_chapter = chapter_title
 
    def init_ui(self):
       layout = QVBoxLayout()
       
       # Display currently playing paragraph
-      self.paragraph_label = QLabel("Currently Playing: ")
-      self.paragraph_label.setFont(QFont("Arial", 12))
+      self.paragraph_label = QLabel("")
+      self.paragraph_label.setFont(QFont("Times New Roman,serif", 18))  # Fixed font setting
       self.paragraph_label.setWordWrap(True)
-      self.paragraph_label.setStyleSheet("background-color: #252525; color: #FFFFFF; padding: 10px; border-radius: 5px;")
+      
+      
+      self.paragraph_label.setStyleSheet("""
+         color: white;
+         padding: 10px;
+         border-radius: 5px;
+      """)
+
       layout.addWidget(self.paragraph_label)
       
       # Play/Pause button
@@ -63,15 +71,21 @@ class PlayBox(QWidget):
       layout.addLayout(chapter_buttons)
       
       self.setLayout(layout)
+   def paintEvent(self, event):
+        painter = QPainter(self)
+        gradient = QLinearGradient(0, 0, self.width(), 0)
+        gradient.setColorAt(0, QColor("#557ffc"))
+        gradient.setColorAt(1, QColor("#80bfff"))
+        painter.fillRect(self.rect(), gradient)
+        super().paintEvent(event)
       
    def update_paragraph_index(self, index):
       """Updates the currently playing paragraph index."""
-      # self.paragraph_label.setText(f"Currently Playing: {index + 1}/{len(self.text_chunks)}")
       self.update_paragraph(self.text_chunks[index])
 
    def update_paragraph(self, text):
       """Updates the currently playing paragraph."""
-      self.paragraph_label.setText(f"Currently Playing: {text}")
+      self.paragraph_label.setText(text)
 
    def toggle_play_pause(self, is_playing):
       """Updates the play/pause button text."""

@@ -83,16 +83,18 @@ class MainWindow(QMainWindow):
         
         self.tts_thread.start()
         
-        self.play_box.initialize_text_chunks(self.text_chunks)
+        self.play_box.initialize_text_chunks(self.text_chunks, self.selected_chapter)
     
     def set_playing_index(self, index):
         self.playing_index = index
-        self.text_reader.highlight_paragraph(index)
+        if self.selected_chapter == self.play_box.current_playing_chapter:
+            self.text_reader.highlight_paragraph(index)
         self.play_box.update_paragraph_index(index)
         
     def stop_playback(self):
         if self.tts_thread:
             self.tts_thread.stop()
+            self.text_reader.unhighlight_paragraph_all()
 
     def toggle_playback(self):
         """Starts or pauses playback."""

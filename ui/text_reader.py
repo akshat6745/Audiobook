@@ -52,22 +52,37 @@ class TextReader(QWidget):
         cursor = self.text_display.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.Start)
         
-        for i in range(index):
+        for i in range(index + 1):
             cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
+            cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
+            cursor.setCharFormat(self.get_normalized_text_format())
 
-        cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
-        cursor.setCharFormat(self.get_normalized_text_format())
-        cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
+        # cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
         cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
         cursor.setCharFormat(self.get_highlight_format())
         cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock)
         self.text_display.setTextCursor(cursor)
+
+    def unhighlight_paragraph_all(self):
+        # Store current scroll position
+        scrollbar = self.text_display.verticalScrollBar()
+        scroll_pos = scrollbar.value()
+        
+        cursor = self.text_display.textCursor()
+        cursor.select(QTextCursor.SelectionType.Document)
+        cursor.setCharFormat(self.get_normalized_text_format())
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock)
+        self.text_display.setTextCursor(cursor)
+        
+        # Restore scroll position
+        scrollbar.setValue(scroll_pos)
 
     def get_highlight_format(self):
         """Returns the text format for highlighting."""
         format = QTextCursor().charFormat()
         format.setBackground(QtGui.QColor("green"))
         return format
+    
     def get_normalized_text_format(self):
         """Returns the text format for highlighting."""
         format = QTextCursor().charFormat()

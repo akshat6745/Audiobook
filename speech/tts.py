@@ -22,29 +22,36 @@ class TTS(QThread):
     async def speak_chunk(self, chunk, index):
         """Generates and plays speech for a single chunk."""
         self.chunk_started.emit(index)  # Emit signal when chunk starts playing
+        
+        # Skip empty chunks
+        if not chunk.strip():
+            self.word_spoken.emit(index)
+            return
+            
         if(chunk.strip() == "***"):
             chunk = "Asterisk Asterisk Asterisk"
-        tts = edge_tts.Communicate(chunk, self.voice)
-        temp_output = f"temp_chunk_{index}.mp3"
-        await tts.save(temp_output)
-        
-        # Convert MP3 to WAV
-        audio = AudioSegment.from_file(temp_output, format="mp3")
-        wav_output = f"temp_chunk_{index}.wav"
-        audio.export(wav_output, format="wav")
-        
-        # Play the WAV file
-        # wave_obj = sa.WaveObject.from_wave_file(wav_output)
-        # play_obj = wave_obj.play()
-        # play_obj.wait_done()
-        subprocess.run(["ffplay", "-nodisp", "-autoexit", wav_output], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            tts = edge_tts.Communicate(chunk, self.voice)
+            temp_output = f"temp_chunk_{index}.mp3"
+            await tts.save(temp_output)
+            
+            # Convert MP3 to WAV
+            audio = AudioSegment.from_file(temp_output, format="mp3")
+            wav_output = f"temp_chunk_{index}.wav"
+            audio.export(wav_output, format="wav")
+            
+            # Play the WAV file
+            subprocess.run(["ffplay", "-nodisp", "-autoexit", wav_output], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        # Emit signal for highlighting
-        self.word_spoken.emit(index)
-        
-        # Cleanup
-        os.remove(temp_output)
-        os.remove(wav_output)
+            # Emit signal for highlighting
+            self.word_spoken.emit(index)
+            
+            # Cleanup
+            os.remove(temp_output)
+            os.remove(wav_output)
+        except Exception as e:
+            # If there's any error, just emit the signal and continue
+            self.word_spoken.emit(index)
     
     async def process_chunks(self):
         """Processes each text chunk dynamically in sequence."""
