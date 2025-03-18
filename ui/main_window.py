@@ -99,14 +99,14 @@ class MainWindow(QMainWindow):
     def toggle_playback(self):
         """Starts or pauses playback."""
         if self.tts_thread and self.tts_thread.isRunning():
-            self.tts_thread.stop()
+            self.tts_thread.pause()
             self.play_box.toggle_play_pause(False)
         else:
             text_chunks = self.text_reader.get_text_chunks()
             self.tts_thread = TTS(text_chunks)
             self.tts_thread.word_spoken.connect(self.update_highlight)
             self.tts_thread.finished.connect(self.on_tts_finished)
-            self.tts_thread.start()
+            self.tts_thread.resume()
             self.play_box.toggle_play_pause(True)
     
     def next_paragraph(self):
